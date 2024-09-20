@@ -1,15 +1,19 @@
 use std::ops::{Add, AddAssign, Mul, MulAssign};
+use num::Unsigned;
+
+pub trait UnsignedUnified: Unsigned + PartialOrd + Copy {}
+impl<T> UnsignedUnified for T where T: Unsigned + PartialOrd + Copy {}
 
 #[derive(Debug, Clone, Copy)]
-pub struct WrapNum {
-    value: u64,
-    wrap: u64,
+pub struct WrapNum<T: UnsignedUnified> {
+    value: T,
+    wrap: T,
 }
 
-// uint type that wraps to 0 when value exceeds `wrap`.
+// Unsigned type that wraps to 0 when value exceeds `wrap`.
 // When operating with multiple WrapNums, the wrap value of the former is taken.
-impl WrapNum {
-    pub fn new(value: u64, wrap: u64) -> WrapNum {
+impl<T: UnsignedUnified> WrapNum<T> {
+    pub fn new(value: T, wrap: T) -> WrapNum<T> {
         assert!(value < wrap);
 
         WrapNum {
@@ -19,7 +23,7 @@ impl WrapNum {
     }
 }
 
-impl Add<WrapNum> for WrapNum {
+impl<T: UnsignedUnified> Add<WrapNum<T>> for WrapNum<T> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
@@ -30,10 +34,10 @@ impl Add<WrapNum> for WrapNum {
     }
 }
 
-impl Add<u64> for WrapNum {
+impl<T: UnsignedUnified> Add<T> for WrapNum<T> {
     type Output = Self;
 
-    fn add(self, rhs: u64) -> Self {
+    fn add(self, rhs: T) -> Self {
         Self {
             value: (self.value + rhs) % self.wrap,
             wrap: self.wrap,
@@ -41,19 +45,19 @@ impl Add<u64> for WrapNum {
     }
 }
 
-impl AddAssign<WrapNum> for WrapNum {
+impl<T: UnsignedUnified> AddAssign<WrapNum<T>> for WrapNum<T> {
     fn add_assign(&mut self, rhs: Self) {
         self.value = (self.value + rhs.value) % self.wrap;
     }
 }
 
-impl AddAssign<u64> for WrapNum {
-    fn add_assign(&mut self, rhs: u64) {
+impl<T: UnsignedUnified> AddAssign<T> for WrapNum<T> {
+    fn add_assign(&mut self, rhs: T) {
         self.value = (self.value + rhs) % self.wrap;
     }
 }
 
-impl Mul<WrapNum> for WrapNum {
+impl<T: UnsignedUnified> Mul<WrapNum<T>> for WrapNum<T> {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
@@ -64,10 +68,10 @@ impl Mul<WrapNum> for WrapNum {
     }
 }
 
-impl Mul<u64> for WrapNum {
+impl<T: UnsignedUnified> Mul<T> for WrapNum<T> {
     type Output = Self;
 
-    fn mul(self, rhs: u64) -> Self {
+    fn mul(self, rhs: T) -> Self {
         Self {
             value: (self.value * rhs) % self.wrap,
             wrap: self.wrap,
@@ -75,14 +79,14 @@ impl Mul<u64> for WrapNum {
     }
 }
 
-impl MulAssign<WrapNum> for WrapNum {
+impl<T: UnsignedUnified> MulAssign<WrapNum<T>> for WrapNum<T> {
     fn mul_assign(&mut self, rhs: Self) {
         self.value = (self.value * rhs.value) % self.wrap;
     }
 }
 
-impl MulAssign<u64> for WrapNum {
-    fn mul_assign(&mut self, rhs: u64) {
+impl<T: UnsignedUnified> MulAssign<T> for WrapNum<T> {
+    fn mul_assign(&mut self, rhs: T) {
         self.value = (self.value * rhs) % self.wrap;
     }
 }
@@ -93,7 +97,7 @@ mod tests {
 
     #[test]
     fn add_wrapnum_nowrap() {
-        let num1 = WrapNum::new(2, 6);
+        let num1 = WrapNum::new(2u32, 6u32);
         let num2 = WrapNum::new(2, 5);
 
         let num3 = num1 + num2;
@@ -104,8 +108,8 @@ mod tests {
 
     #[test]
     fn add_wrapnum_wrap() {
-        let num1 = WrapNum::new(3, 6);
-        let num2 = WrapNum::new(4, 5);
+        let num1 = WrapNum::new(3u32, 6u32);
+        let num2 = WrapNum::new(4u32, 5u32);
 
         let num3 = num1 + num2;
 
@@ -115,8 +119,8 @@ mod tests {
 
     #[test]
     fn add_u64_wrap() {
-        let num1 = WrapNum::new(3, 6);
-        let num2 = 7u64;
+        let num1 = WrapNum::new(3u32, 6u32);
+        let num2 = 7u32;
 
         let num3 = num1 + num2;
 
@@ -126,8 +130,8 @@ mod tests {
 
     #[test]
     fn add_assign_wrapnum_wrap() {
-        let mut num1 = WrapNum::new(3, 6);
-        let num2 = WrapNum::new(4, 5);
+        let mut num1 = WrapNum::new(3u32, 6u32);
+        let num2 = WrapNum::new(4u32, 5u32);
 
         num1 += num2;
 
@@ -137,8 +141,8 @@ mod tests {
 
     #[test]
     fn mul_wrapnum_wrap() {
-        let num1 = WrapNum::new(4, 6);
-        let num2 = WrapNum::new(4, 5);
+        let num1 = WrapNum::new(4u32, 6u32);
+        let num2 = WrapNum::new(4u32, 5u32);
 
         let num3 = num1 * num2;
 
@@ -148,8 +152,8 @@ mod tests {
 
     #[test]
     fn mul_assign_wrapnum_wrap() {
-        let mut num1 = WrapNum::new(4, 6);
-        let num2 = WrapNum::new(4, 5);
+        let mut num1 = WrapNum::new(4u32, 6u32);
+        let num2 = WrapNum::new(4u32, 5u32);
 
         num1 *= num2;
 
