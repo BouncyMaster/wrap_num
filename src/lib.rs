@@ -1,8 +1,8 @@
 use std::ops::{Add, AddAssign, Mul, MulAssign};
-use num::Unsigned;
+use num::{Unsigned, cast, NumCast};
 
-pub trait UnsignedUnified: Unsigned + PartialOrd + Copy {}
-impl<T> UnsignedUnified for T where T: Unsigned + PartialOrd + Copy {}
+pub trait UnsignedUnified: Unsigned + NumCast + PartialOrd + Copy {}
+impl<T> UnsignedUnified for T where T: Unsigned + NumCast + PartialOrd + Copy {}
 
 #[derive(Debug, Clone, Copy)]
 pub struct WrapNum<T: UnsignedUnified> {
@@ -23,71 +23,71 @@ impl<T: UnsignedUnified> WrapNum<T> {
     }
 }
 
-impl<T: UnsignedUnified> Add<WrapNum<T>> for WrapNum<T> {
+impl<T: UnsignedUnified, U: UnsignedUnified> Add<WrapNum<U>> for WrapNum<T> {
     type Output = Self;
 
-    fn add(self, rhs: Self) -> Self {
+    fn add(self, rhs: WrapNum<U>) -> Self {
         Self {
-            value: (self.value + rhs.value) % self.wrap,
+            value: (self.value + cast(rhs.value).unwrap()) % self.wrap,
             wrap: self.wrap,
         }
     }
 }
 
-impl<T: UnsignedUnified> Add<T> for WrapNum<T> {
+impl<T: UnsignedUnified, U: UnsignedUnified> Add<U> for WrapNum<T> {
     type Output = Self;
 
-    fn add(self, rhs: T) -> Self {
+    fn add(self, rhs: U) -> Self {
         Self {
-            value: (self.value + rhs) % self.wrap,
+            value: (self.value + cast(rhs).unwrap()) % self.wrap,
             wrap: self.wrap,
         }
     }
 }
 
-impl<T: UnsignedUnified> AddAssign<WrapNum<T>> for WrapNum<T> {
-    fn add_assign(&mut self, rhs: Self) {
-        self.value = (self.value + rhs.value) % self.wrap;
+impl<T: UnsignedUnified, U: UnsignedUnified> AddAssign<WrapNum<U>> for WrapNum<T> {
+    fn add_assign(&mut self, rhs: WrapNum<U>) {
+        self.value = (self.value + cast(rhs.value).unwrap()) % self.wrap;
     }
 }
 
-impl<T: UnsignedUnified> AddAssign<T> for WrapNum<T> {
-    fn add_assign(&mut self, rhs: T) {
-        self.value = (self.value + rhs) % self.wrap;
+impl<T: UnsignedUnified, U: UnsignedUnified> AddAssign<U> for WrapNum<T> {
+    fn add_assign(&mut self, rhs: U) {
+        self.value = (self.value + cast(rhs).unwrap()) % self.wrap;
     }
 }
 
-impl<T: UnsignedUnified> Mul<WrapNum<T>> for WrapNum<T> {
+impl<T: UnsignedUnified, U: UnsignedUnified> Mul<WrapNum<U>> for WrapNum<T> {
     type Output = Self;
 
-    fn mul(self, rhs: Self) -> Self {
+    fn mul(self, rhs: WrapNum<U>) -> Self {
         Self {
-            value: (self.value * rhs.value) % self.wrap,
+            value: (self.value * cast(rhs.value).unwrap()) % self.wrap,
             wrap: self.wrap,
         }
     }
 }
 
-impl<T: UnsignedUnified> Mul<T> for WrapNum<T> {
+impl<T: UnsignedUnified, U: UnsignedUnified> Mul<U> for WrapNum<T> {
     type Output = Self;
 
-    fn mul(self, rhs: T) -> Self {
+    fn mul(self, rhs: U) -> Self {
         Self {
-            value: (self.value * rhs) % self.wrap,
+            value: (self.value * cast(rhs).unwrap()) % self.wrap,
             wrap: self.wrap,
         }
     }
 }
 
-impl<T: UnsignedUnified> MulAssign<WrapNum<T>> for WrapNum<T> {
-    fn mul_assign(&mut self, rhs: Self) {
-        self.value = (self.value * rhs.value) % self.wrap;
+impl<T: UnsignedUnified, U: UnsignedUnified> MulAssign<WrapNum<U>> for WrapNum<T> {
+    fn mul_assign(&mut self, rhs: WrapNum<U>) {
+        self.value = (self.value * cast(rhs.value).unwrap()) % self.wrap;
     }
 }
 
-impl<T: UnsignedUnified> MulAssign<T> for WrapNum<T> {
-    fn mul_assign(&mut self, rhs: T) {
-        self.value = (self.value * rhs) % self.wrap;
+impl<T: UnsignedUnified, U: UnsignedUnified> MulAssign<U> for WrapNum<T> {
+    fn mul_assign(&mut self, rhs: U) {
+        self.value = (self.value * cast(rhs).unwrap()) % self.wrap;
     }
 }
 
@@ -98,7 +98,7 @@ mod tests {
     #[test]
     fn add_wrapnum_nowrap() {
         let num1 = WrapNum::new(2u32, 6u32);
-        let num2 = WrapNum::new(2, 5);
+        let num2 = WrapNum::new(2u32, 5u32);
 
         let num3 = num1 + num2;
 
