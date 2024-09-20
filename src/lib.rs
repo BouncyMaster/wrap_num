@@ -160,4 +160,15 @@ mod tests {
         assert_eq!(num1.value, 4);
         assert_eq!(num1.wrap, 6);
     }
+
+    #[test]
+    fn ops_different_types() {
+        let mut num1 = WrapNum::new(4u32, 6u32);
+        let num2 = WrapNum::new(4u16, 5u16);
+
+        num1 *= num2;
+
+        assert_eq!(num1.value, 4);
+        assert_eq!(num1.wrap, 6);
+    }
 }
