@@ -92,7 +92,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn add_wrapnum() {
+    fn add_wrapnum_nowrap() {
         let num1 = WrapNum::new(2, 6);
         let num2 = WrapNum::new(2, 5);
 
@@ -100,5 +100,60 @@ mod tests {
 
         assert_eq!(num3.value, 4);
         assert_eq!(num3.wrap, 6);
+    }
+
+    #[test]
+    fn add_wrapnum_wrap() {
+        let num1 = WrapNum::new(3, 6);
+        let num2 = WrapNum::new(4, 5);
+
+        let num3 = num1 + num2;
+
+        assert_eq!(num3.value, 1);
+        assert_eq!(num3.wrap, 6);
+    }
+
+    #[test]
+    fn add_u64_wrap() {
+        let num1 = WrapNum::new(3, 6);
+        let num2 = 7u64;
+
+        let num3 = num1 + num2;
+
+        assert_eq!(num3.value, 4);
+        assert_eq!(num3.wrap, 6);
+    }
+
+    #[test]
+    fn add_assign_wrapnum_wrap() {
+        let mut num1 = WrapNum::new(3, 6);
+        let num2 = WrapNum::new(4, 5);
+
+        num1 += num2;
+
+        assert_eq!(num1.value, 1);
+        assert_eq!(num1.wrap, 6);
+    }
+
+    #[test]
+    fn mul_wrapnum_wrap() {
+        let num1 = WrapNum::new(4, 6);
+        let num2 = WrapNum::new(4, 5);
+
+        let num3 = num1 * num2;
+
+        assert_eq!(num3.value, 4);
+        assert_eq!(num3.wrap, 6);
+    }
+
+    #[test]
+    fn mul_assign_wrapnum_wrap() {
+        let mut num1 = WrapNum::new(4, 6);
+        let num2 = WrapNum::new(4, 5);
+
+        num1 *= num2;
+
+        assert_eq!(num1.value, 4);
+        assert_eq!(num1.wrap, 6);
     }
 }
