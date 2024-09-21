@@ -2,7 +2,7 @@
 #![allow(clippy::suspicious_op_assign_impl)]
 
 use std::ops::{Add, AddAssign, Mul, MulAssign};
-use num::{Unsigned, NumCast};
+use num::{Unsigned, NumCast, ToPrimitive};
 
 pub trait UnsignedUnified: Unsigned + NumCast + PartialOrd + Copy {}
 impl<T> UnsignedUnified for T where T: Unsigned + NumCast + PartialOrd + Copy {}
@@ -26,9 +26,19 @@ impl<T: UnsignedUnified> WrapNum<T> {
     }
 }
 
+impl<T: UnsignedUnified> ToPrimitive for WrapNum<T> {
+    fn to_i64(&self) -> Option<i64> {
+        self.value.to_i64()
+    }
+
+    fn to_u64(&self) -> Option<u64> {
+        self.value.to_u64()
+    }
+}
+
 macro_rules! impl_ops {
     ($trait_name:ident, $trait_fn:ident, $as_trait_name:ident, $as_trait_fn:ident) => {
-        impl<T: UnsignedUnified, U: UnsignedUnified> $trait_name<U> for WrapNum<T> {
+        impl<T: UnsignedUnified, U: ToPrimitive> $trait_name<U> for WrapNum<T> {
             type Output = Self;
 
             fn $trait_fn(self, rhs: U) -> Self {
@@ -41,28 +51,9 @@ macro_rules! impl_ops {
             }
         }
 
-        impl<T: UnsignedUnified, U: UnsignedUnified> $trait_name<WrapNum<U>> for WrapNum<T> {
-            type Output = Self;
-
-            fn $trait_fn(self, rhs: WrapNum<U>) -> Self {
-                let result = (self.value).$trait_fn(NumCast::from(rhs.value).unwrap()) % self.wrap;
-
-                Self {
-                    value: result,
-                    wrap: self.wrap,
-                }
-            }
-        }
-
-        impl<T: UnsignedUnified, U: UnsignedUnified> $as_trait_name<U> for WrapNum<T> {
+        impl<T: UnsignedUnified, U: ToPrimitive> $as_trait_name<U> for WrapNum<T> {
             fn $as_trait_fn(&mut self, rhs: U) {
                 self.value = (self.value).$trait_fn(NumCast::from(rhs).unwrap()) % self.wrap;
-            }
-        }
-
-        impl<T: UnsignedUnified, U: UnsignedUnified> $as_trait_name<WrapNum<U>> for WrapNum<T> {
-            fn $as_trait_fn(&mut self, rhs: WrapNum<U>) {
-                self.value = (self.value).$trait_fn(NumCast::from(rhs.value).unwrap()) % self.wrap;
             }
         }
     };
