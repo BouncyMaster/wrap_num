@@ -1,7 +1,7 @@
 #![allow(clippy::suspicious_arithmetic_impl)]
 #![allow(clippy::suspicious_op_assign_impl)]
 
-use std::ops::{Add, AddAssign, Mul, MulAssign};
+use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign};
 use num::{Unsigned, NumCast, ToPrimitive};
 
 pub trait UnsignedUnified: Unsigned + NumCast + PartialOrd + Copy {}
@@ -60,6 +60,7 @@ macro_rules! impl_ops {
 }
 
 impl_ops!(Add, add, AddAssign, add_assign);
+impl_ops!(Sub, sub, SubAssign, sub_assign);
 impl_ops!(Mul, mul, MulAssign, mul_assign);
 
 #[cfg(test)]
@@ -89,7 +90,7 @@ mod tests {
     }
 
     #[test]
-    fn add_u64_wrap() {
+    fn add_u32_wrap() {
         let num1 = WrapNum::new(3u32, 6u32);
         let num2 = 7u32;
 
@@ -97,6 +98,26 @@ mod tests {
 
         assert_eq!(num3.value, 4);
         assert_eq!(num3.wrap, 6);
+    }
+
+    #[test]
+    fn sub_u32() {
+        let num1 = WrapNum::new(5u32, 6u32);
+        let num2 = 2u32;
+
+        let num3 = num1 - num2;
+
+        assert_eq!(num3.value, 3);
+        assert_eq!(num3.wrap, 6);
+    }
+
+    #[test]
+    #[should_panic]
+    fn sub_u32_overflow() {
+        let num1 = WrapNum::new(5u32, 7u32);
+        let num2 = 6u32;
+
+        let _ = num1 - num2;
     }
 
     #[test]
