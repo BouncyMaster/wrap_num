@@ -2,12 +2,13 @@
 #![allow(clippy::suspicious_op_assign_impl)]
 
 use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Rem, RemAssign};
+use std::hash::Hash;
 use num::{Unsigned, NumCast, ToPrimitive};
 
 pub trait UnsignedUnified: Unsigned + NumCast + PartialOrd + Copy {}
 impl<T> UnsignedUnified for T where T: Unsigned + NumCast + PartialOrd + Copy {}
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash)]
 pub struct WrapNum<T: UnsignedUnified> {
     value: T,
     wrap: T,
@@ -185,5 +186,37 @@ mod tests {
 
         assert_eq!(num1.value, 4);
         assert_eq!(num1.wrap, 10);
+    }
+
+    #[test]
+    fn hash_eq() {
+        use std::hash::{Hasher, DefaultHasher};
+
+        fn calculate_hash<T: Hash>(t: &T) -> u64 {
+            let mut s = DefaultHasher::new();
+            t.hash(&mut s);
+            s.finish()
+        }
+
+        let num1 = WrapNum::new(4u32, 6u32);
+        let num2 = WrapNum::new(4u32, 6u32);
+
+        assert_eq!(calculate_hash(&num1), calculate_hash(&num2));
+    }
+
+    #[test]
+    fn hash_ne() {
+        use std::hash::{Hasher, DefaultHasher};
+
+        fn calculate_hash<T: Hash>(t: &T) -> u64 {
+            let mut s = DefaultHasher::new();
+            t.hash(&mut s);
+            s.finish()
+        }
+
+        let num1 = WrapNum::new(4u32, 6u32);
+        let num2 = WrapNum::new(4u32, 5u32);
+
+        assert_ne!(calculate_hash(&num1), calculate_hash(&num2));
     }
 }
