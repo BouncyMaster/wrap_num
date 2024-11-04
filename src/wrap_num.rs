@@ -1,7 +1,7 @@
 #![allow(clippy::suspicious_arithmetic_impl)]
 #![allow(clippy::suspicious_op_assign_impl)]
 
-use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign};
+use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Rem, RemAssign};
 use num::{Unsigned, NumCast, ToPrimitive};
 
 pub trait UnsignedUnified: Unsigned + NumCast + PartialOrd + Copy {}
@@ -62,6 +62,7 @@ macro_rules! impl_ops {
 impl_ops!(Add, add, AddAssign, add_assign);
 impl_ops!(Sub, sub, SubAssign, sub_assign);
 impl_ops!(Mul, mul, MulAssign, mul_assign);
+impl_ops!(Rem, rem, RemAssign, rem_assign);
 
 #[cfg(test)]
 mod tests {
@@ -162,5 +163,27 @@ mod tests {
 
         assert_eq!(num1.value, 4);
         assert_eq!(num1.wrap, 6);
+    }
+
+    #[test]
+    fn rem_u32() {
+        let num1 = WrapNum::new(5u32, 6u32);
+        let num2 = 2u32;
+
+        let num3 = num1 % num2;
+
+        assert_eq!(num3.value, 1);
+        assert_eq!(num3.wrap, 6);
+    }
+
+    #[test]
+    fn rem_assign_u32() {
+        let mut num1 = WrapNum::new(9u32, 10u32);
+        let num2 = 5u32;
+
+        num1 %= num2;
+
+        assert_eq!(num1.value, 4);
+        assert_eq!(num1.wrap, 10);
     }
 }
