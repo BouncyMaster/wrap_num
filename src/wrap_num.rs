@@ -8,7 +8,7 @@ use num::{Unsigned, NumCast, ToPrimitive};
 pub trait UnsignedUnified: Unsigned + NumCast + PartialOrd + Copy {}
 impl<T> UnsignedUnified for T where T: Unsigned + NumCast + PartialOrd + Copy {}
 
-#[derive(Debug, Clone, Copy, Hash)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct WrapNum<T: UnsignedUnified> {
     value: T,
     wrap: T,
@@ -218,5 +218,21 @@ mod tests {
         let num2 = WrapNum::new(4u32, 5u32);
 
         assert_ne!(calculate_hash(&num1), calculate_hash(&num2));
+    }
+
+    #[test]
+    fn eq() {
+        let num1 = WrapNum::new(4u32, 6u32);
+        let num2 = WrapNum::new(4u32, 6u32);
+
+        assert_eq!(num1 == num2, true);
+    }
+
+    #[test]
+    fn ne() {
+        let num1 = WrapNum::new(4u32, 6u32);
+        let num2 = WrapNum::new(4u32, 5u32);
+
+        assert_eq!(num1 == num2, false);
     }
 }
