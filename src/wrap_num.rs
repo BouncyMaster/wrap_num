@@ -25,6 +25,10 @@ impl<T: UnsignedUnified> WrapNum<T> {
             wrap,
         }
     }
+
+    pub fn get_value(self) -> T {
+        self.value
+    }
 }
 
 impl<T: UnsignedUnified> ToPrimitive for WrapNum<T> {
@@ -76,7 +80,7 @@ mod tests {
 
         let num3 = num1 + num2;
 
-        assert_eq!(num3.value, 4);
+        assert_eq!(num3.get_value(), 4);
         assert_eq!(num3.wrap, 6);
     }
 
@@ -87,7 +91,7 @@ mod tests {
 
         let num3 = num1 + num2;
 
-        assert_eq!(num3.value, 1);
+        assert_eq!(num3.get_value(), 1);
         assert_eq!(num3.wrap, 6);
     }
 
@@ -98,7 +102,7 @@ mod tests {
 
         let num3 = num1 + num2;
 
-        assert_eq!(num3.value, 4);
+        assert_eq!(num3.get_value(), 4);
         assert_eq!(num3.wrap, 6);
     }
 
@@ -109,7 +113,7 @@ mod tests {
 
         let num3 = num1 - num2;
 
-        assert_eq!(num3.value, 3);
+        assert_eq!(num3.get_value(), 3);
         assert_eq!(num3.wrap, 6);
     }
 
@@ -129,7 +133,7 @@ mod tests {
 
         num1 += num2;
 
-        assert_eq!(num1.value, 1);
+        assert_eq!(num1.get_value(), 1);
         assert_eq!(num1.wrap, 6);
     }
 
@@ -140,7 +144,7 @@ mod tests {
 
         let num3 = num1 * num2;
 
-        assert_eq!(num3.value, 4);
+        assert_eq!(num3.get_value(), 4);
         assert_eq!(num3.wrap, 6);
     }
 
@@ -151,7 +155,7 @@ mod tests {
 
         num1 *= num2;
 
-        assert_eq!(num1.value, 4);
+        assert_eq!(num1.get_value(), 4);
         assert_eq!(num1.wrap, 6);
     }
 
@@ -162,7 +166,7 @@ mod tests {
 
         num1 *= num2;
 
-        assert_eq!(num1.value, 4);
+        assert_eq!(num1.get_value(), 4);
         assert_eq!(num1.wrap, 6);
     }
 
@@ -173,7 +177,7 @@ mod tests {
 
         let num3 = num1 % num2;
 
-        assert_eq!(num3.value, 1);
+        assert_eq!(num3.get_value(), 1);
         assert_eq!(num3.wrap, 6);
     }
 
@@ -184,7 +188,7 @@ mod tests {
 
         num1 %= num2;
 
-        assert_eq!(num1.value, 4);
+        assert_eq!(num1.get_value(), 4);
         assert_eq!(num1.wrap, 10);
     }
 
