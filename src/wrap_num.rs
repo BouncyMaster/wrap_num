@@ -64,33 +64,10 @@ macro_rules! impl_ops {
     };
 }
 
-macro_rules! impl_ops_nowrap {
-    ($trait_name:ident, $trait_fn:ident, $as_trait_name:ident, $as_trait_fn:ident) => {
-        impl<T: UnsignedUnified, U: ToPrimitive> $trait_name<U> for WrapNum<T> {
-            type Output = Self;
-
-            fn $trait_fn(self, rhs: U) -> Self {
-                let result = (self.value).$trait_fn(NumCast::from(rhs).unwrap());
-
-                Self {
-                    value: result,
-                    wrap: self.wrap,
-                }
-            }
-        }
-
-        impl<T: UnsignedUnified, U: ToPrimitive> $as_trait_name<U> for WrapNum<T> {
-            fn $as_trait_fn(&mut self, rhs: U) {
-                self.value = (self.value).$trait_fn(NumCast::from(rhs).unwrap());
-            }
-        }
-    };
-}
-
 impl_ops!(Add, add, AddAssign, add_assign);
+impl_ops!(Sub, sub, SubAssign, sub_assign);
 impl_ops!(Mul, mul, MulAssign, mul_assign);
-impl_ops_nowrap!(Sub, sub, SubAssign, sub_assign);
-impl_ops_nowrap!(Rem, rem, RemAssign, rem_assign);
+impl_ops!(Rem, rem, RemAssign, rem_assign);
 
 #[cfg(test)]
 mod tests {
