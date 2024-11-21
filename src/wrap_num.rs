@@ -1,12 +1,10 @@
-#![allow(clippy::suspicious_arithmetic_impl)]
-#![allow(clippy::suspicious_op_assign_impl)]
-
 use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Rem, RemAssign};
 use std::hash::Hash;
+use num::traits::{WrappingAdd, WrappingMul};
 use num::{Unsigned, NumCast, ToPrimitive};
 
-pub trait UnsignedUnified: Unsigned + NumCast + PartialOrd + Copy {}
-impl<T> UnsignedUnified for T where T: Unsigned + NumCast + PartialOrd + Copy {}
+pub trait UnsignedUnified: Unsigned + NumCast + PartialOrd + Copy + WrappingAdd + WrappingMul {}
+impl<T> UnsignedUnified for T where T: Unsigned + NumCast + Copy + PartialOrd + WrappingAdd + WrappingMul {}
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct WrapNum<T: UnsignedUnified> {
@@ -27,7 +25,7 @@ impl<T: UnsignedUnified> WrapNum<T> {
     }
 
     pub fn get_value(self) -> T {
-        self.value
+        self.value % self.wrap
     }
 }
 
@@ -41,33 +39,73 @@ impl<T: UnsignedUnified> ToPrimitive for WrapNum<T> {
     }
 }
 
-macro_rules! impl_ops {
-    ($trait_name:ident, $trait_fn:ident, $as_trait_name:ident, $as_trait_fn:ident) => {
-        impl<T: UnsignedUnified, U: ToPrimitive> $trait_name<U> for WrapNum<T> {
-            type Output = Self;
+impl<T: UnsignedUnified, U: ToPrimitive> Add<U> for WrapNum<T> {
+    type Output = Self;
 
-            fn $trait_fn(self, rhs: U) -> Self {
-                let result = (self.value).$trait_fn(NumCast::from(rhs).unwrap()) % self.wrap;
-
-                Self {
-                    value: result,
-                    wrap: self.wrap,
-                }
-            }
+    fn add(self, rhs: U) -> Self::Output {
+        Self {
+            value: self.value.wrapping_add(&NumCast::from(rhs).unwrap()),
+            wrap: self.wrap
         }
-
-        impl<T: UnsignedUnified, U: ToPrimitive> $as_trait_name<U> for WrapNum<T> {
-            fn $as_trait_fn(&mut self, rhs: U) {
-                self.value = (self.value).$trait_fn(NumCast::from(rhs).unwrap()) % self.wrap;
-            }
-        }
-    };
+    }
 }
 
-impl_ops!(Add, add, AddAssign, add_assign);
-impl_ops!(Sub, sub, SubAssign, sub_assign);
-impl_ops!(Mul, mul, MulAssign, mul_assign);
-impl_ops!(Rem, rem, RemAssign, rem_assign);
+impl<T: UnsignedUnified, U: ToPrimitive> AddAssign<U> for WrapNum<T> {
+    fn add_assign(&mut self, rhs: U) {
+        self.value = self.value.wrapping_add(&NumCast::from(rhs).unwrap());
+    }
+}
+
+impl<T: UnsignedUnified, U: ToPrimitive> Sub<U> for WrapNum<T> {
+    type Output = Self;
+
+    fn sub(self, rhs: U) -> Self::Output {
+        Self {
+            value: self.value - NumCast::from(rhs).unwrap(),
+            wrap: self.wrap
+        }
+    }
+}
+
+impl<T: UnsignedUnified, U: ToPrimitive> SubAssign<U> for WrapNum<T> {
+    fn sub_assign(&mut self, rhs: U) {
+        self.value = self.value - NumCast::from(rhs).unwrap();
+    }
+}
+
+impl<T: UnsignedUnified, U: ToPrimitive> Mul<U> for WrapNum<T> {
+    type Output = Self;
+
+    fn mul(self, rhs: U) -> Self::Output {
+        Self {
+            value: self.value.wrapping_mul(&NumCast::from(rhs).unwrap()),
+            wrap: self.wrap
+        }
+    }
+}
+
+impl<T: UnsignedUnified, U: ToPrimitive> MulAssign<U> for WrapNum<T> {
+    fn mul_assign(&mut self, rhs: U) {
+        self.value = self.value.wrapping_mul(&NumCast::from(rhs).unwrap());
+    }
+}
+
+impl<T: UnsignedUnified, U: ToPrimitive> Rem<U> for WrapNum<T> {
+    type Output = Self;
+
+    fn rem(self, rhs: U) -> Self::Output {
+        Self {
+            value: self.value % NumCast::from(rhs).unwrap(),
+            wrap: self.wrap
+        }
+    }
+}
+
+impl<T: UnsignedUnified, U: ToPrimitive> RemAssign<U> for WrapNum<T> {
+    fn rem_assign(&mut self, rhs: U) {
+        self.value = self.value % NumCast::from(rhs).unwrap();
+    }
+}
 
 #[cfg(test)]
 mod tests {
