@@ -1,10 +1,19 @@
-use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Rem, RemAssign};
-use std::hash::Hash;
 use num::traits::{WrappingAdd, WrappingMul};
-use num::{Unsigned, NumCast, ToPrimitive};
+use num::{NumCast, ToPrimitive, Unsigned};
+use std::hash::Hash;
+use std::ops::{Add, AddAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign};
 
-pub trait UnsignedUnified: Unsigned + NumCast + PartialOrd + Copy + WrappingAdd + WrappingMul {}
-impl<T> UnsignedUnified for T where T: Unsigned + NumCast + Copy + PartialOrd + WrappingAdd + WrappingMul {}
+// TODO: make wrap value a generic, simplifies code elsewhere
+// It seems like we need feature(generic_const_exprs) for this
+
+pub trait UnsignedUnified:
+    Unsigned + NumCast + PartialOrd + Copy + WrappingAdd + WrappingMul
+{
+}
+impl<T> UnsignedUnified for T where
+    T: Unsigned + NumCast + Copy + PartialOrd + WrappingAdd + WrappingMul
+{
+}
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct WrapNum<T: UnsignedUnified> {
@@ -18,10 +27,7 @@ impl<T: UnsignedUnified> WrapNum<T> {
     pub fn new(value: T, wrap: T) -> WrapNum<T> {
         assert!(value < wrap);
 
-        WrapNum {
-            value,
-            wrap,
-        }
+        WrapNum { value, wrap }
     }
 
     pub fn get_value(self) -> T {
@@ -45,7 +51,7 @@ impl<T: UnsignedUnified, U: ToPrimitive> Add<U> for WrapNum<T> {
     fn add(self, rhs: U) -> Self::Output {
         Self {
             value: self.value.wrapping_add(&NumCast::from(rhs).unwrap()),
-            wrap: self.wrap
+            wrap: self.wrap,
         }
     }
 }
@@ -62,7 +68,7 @@ impl<T: UnsignedUnified, U: ToPrimitive> Sub<U> for WrapNum<T> {
     fn sub(self, rhs: U) -> Self::Output {
         Self {
             value: self.value - NumCast::from(rhs).unwrap(),
-            wrap: self.wrap
+            wrap: self.wrap,
         }
     }
 }
@@ -79,7 +85,7 @@ impl<T: UnsignedUnified, U: ToPrimitive> Mul<U> for WrapNum<T> {
     fn mul(self, rhs: U) -> Self::Output {
         Self {
             value: self.value.wrapping_mul(&NumCast::from(rhs).unwrap()),
-            wrap: self.wrap
+            wrap: self.wrap,
         }
     }
 }
@@ -96,7 +102,7 @@ impl<T: UnsignedUnified, U: ToPrimitive> Rem<U> for WrapNum<T> {
     fn rem(self, rhs: U) -> Self::Output {
         Self {
             value: self.value % NumCast::from(rhs).unwrap(),
-            wrap: self.wrap
+            wrap: self.wrap,
         }
     }
 }
@@ -232,7 +238,7 @@ mod tests {
 
     #[test]
     fn hash_eq() {
-        use std::hash::{Hasher, DefaultHasher};
+        use std::hash::{DefaultHasher, Hasher};
 
         fn calculate_hash<T: Hash>(t: &T) -> u64 {
             let mut s = DefaultHasher::new();
@@ -248,7 +254,7 @@ mod tests {
 
     #[test]
     fn hash_ne() {
-        use std::hash::{Hasher, DefaultHasher};
+        use std::hash::{DefaultHasher, Hasher};
 
         fn calculate_hash<T: Hash>(t: &T) -> u64 {
             let mut s = DefaultHasher::new();
